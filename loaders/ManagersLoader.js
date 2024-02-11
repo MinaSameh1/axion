@@ -67,6 +67,8 @@ module.exports = class ManagersLoader {
         this.managers.shark               = new SharkFin({ ...this.injectable, layers, actions });
         this.managers.timeMachine         = new TimeMachine(this.injectable);
         this.managers.token               = new TokenManager(this.injectable);
+        // Two approaches, either create a new server for each item, or create an 
+        // Api entity manager. For now follow the same structure don't add a new server
         this.managers.user = new User({ ...this.injectable, managers: this.managers });
         /*************************************************************************************************/
         this.managers.mwsExec             = new VirtualStack({ ...{ preStack: [/* '__token', */'__device',] }, ...this.injectable });
