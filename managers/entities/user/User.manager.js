@@ -13,7 +13,7 @@ module.exports = class User {
     this.cortex = cortex;
     this.validators = validators;
     this.tokenManager = managers.token;
-    this.managers = managers;
+    this.responseDispatcher = managers.responseDispatcher;
     this.httpExposed = ["createUser", "getUser", "loginUser"];
     this._label = "user";
   }
@@ -36,7 +36,7 @@ module.exports = class User {
 
     if (createdUser.error) {
       if (createdUser.error.includes("already exists")) {
-        this.managers.responseDispatcher.dispatch(res, {
+        this.responseDispatcher.dispatch(res, {
           code: 409,
           message: "Email already exists",
         });
@@ -45,7 +45,7 @@ module.exports = class User {
         };
       }
       console.error("Failed to create user", createdUser.error);
-      this.managers.responseDispatcher.dispatch(res, {
+      this.responseDispatcher.dispatch(res, {
         code: 500,
         message: "Failed to create user",
       });
@@ -76,7 +76,7 @@ module.exports = class User {
     // Get user from db
     const user = await this.oyster.call("get_block", `${this._label}:${email}`);
     if (!user || Object.keys(user).length === 0) {
-      this.managers.responseDispatcher.dispatch(res, {
+      this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 404,
         message: "User not found",
@@ -88,7 +88,7 @@ module.exports = class User {
 
     // Compare password
     if (user.password !== password) {
-      this.managers.responseDispatcher.dispatch(res, {
+      this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 401,
         message: "Invalid password",
@@ -120,7 +120,7 @@ module.exports = class User {
 
     // Handle Not Found
     if (!user || Object.keys(user).length === 0) {
-      this.managers.responseDispatcher.dispatch(res, {
+      this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 404,
         message: "User not found",
