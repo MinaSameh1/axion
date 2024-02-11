@@ -13,9 +13,9 @@ module.exports = class User {
     this.cortex = cortex;
     this.validators = validators;
     this.tokenManager = managers.token;
-    this.responseDispatcher = managers.responseDispatcher;
-    this.usersCollection = "users";
-    this.httpExposed = ["createUser", "getUser"];
+    this.managers = managers;
+    this.httpExposed = ["createUser", "getUser", "loginUser"];
+    this._label = "user";
   }
 
   async createUser({ username, email, password, res }) {
@@ -26,17 +26,17 @@ module.exports = class User {
     if (result) return result;
 
     // Creation Logic
-    // Create user in db
+    // Create user in db, should hash password? No hashing for now
     const createdUser = await this.oyster.call("add_block", {
       ...user,
+      role: "user",
       _id: user.email,
-      __label: "user",
-      __collection: this.usersCollection,
+      _label: this._label,
     });
 
     if (createdUser.error) {
       if (createdUser.error.includes("already exists")) {
-        this.responseDispatcher.dispatch(res, {
+        this.managers.responseDispatcher.dispatch(res, {
           code: 409,
           message: "Email already exists",
         });
@@ -45,7 +45,7 @@ module.exports = class User {
         };
       }
       console.error("Failed to create user", createdUser.error);
-      this.responseDispatcher.dispatch(res, {
+      this.managers.responseDispatcher.dispatch(res, {
         code: 500,
         message: "Failed to create user",
       });
@@ -55,13 +55,58 @@ module.exports = class User {
     }
 
     let longToken = this.tokenManager.genLongToken({
-      userId: createdUser._id,
+      userId: createdUser.email,
       userKey: createdUser.key,
+    });
+
+    const { password: _password, ...userWithoutPassword } = createdUser;
+
+    // Response
+    return {
+      user: userWithoutPassword,
+      longToken,
+    };
+  }
+
+  async loginUser({ email, password, res }) {
+    // Data validation
+    const result = await this.validators.user.loginUser({ email, password });
+    if (result) return result;
+
+    // Get user from db
+    const user = await this.oyster.call("get_block", `${this._label}:${email}`);
+    if (!user || Object.keys(user).length === 0) {
+      this.managers.responseDispatcher.dispatch(res, {
+        ok: false,
+        code: 404,
+        message: "User not found",
+      });
+      return {
+        selfHandleResponse: true,
+      };
+    }
+
+    // Compare password
+    if (user.password !== password) {
+      this.managers.responseDispatcher.dispatch(res, {
+        ok: false,
+        code: 401,
+        message: "Invalid password",
+      });
+      return {
+        selfHandleResponse: true,
+      };
+    }
+
+    // Generate long token
+    const longToken = this.tokenManager.genLongToken({
+      userId: user.email,
+      userKey: user.key,
     });
 
     // Response
     return {
-      user: createdUser,
+      user,
       longToken,
     };
   }
@@ -75,7 +120,7 @@ module.exports = class User {
 
     // Handle Not Found
     if (!user || Object.keys(user).length === 0) {
-      this.responseDispatcher.dispatch(res, {
+      this.managers.responseDispatcher.dispatch(res, {
         ok: false,
         code: 404,
         message: "User not found",
