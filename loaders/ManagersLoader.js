@@ -1,18 +1,24 @@
 const MiddlewaresLoader     = require('./MiddlewaresLoader');
 const ApiHandler            = require("../managers/api/Api.manager");
 const LiveDB                = require('../managers/live_db/LiveDb.manager');
-const UserServer            = require('../managers/http/UserServer.manager');
 const ResponseDispatcher    = require('../managers/response_dispatcher/ResponseDispatcher.manager');
 const VirtualStack          = require('../managers/virtual_stack/VirtualStack.manager');
 const ValidatorsLoader      = require('./ValidatorsLoader');
 const ResourceMeshLoader    = require('./ResourceMeshLoader');
 const utils                 = require('../libs/utils');
-const User                  = require('../managers/entities/user/User.manager');
 
 const systemArch            = require('../static_arch/main.system');
 const TokenManager          = require('../managers/token/Token.manager');
 const SharkFin              = require('../managers/shark_fin/SharkFin.manager');
 const TimeMachine           = require('../managers/time_machine/TimeMachine.manager');
+
+// Custom Managers
+const User                  = require('../managers/entities/user/User.manager');
+const School                = require('../managers/entities/school/School.manager');
+
+// Servers
+const UserServer            = require('../managers/http/UserServer.manager');
+const SchoolServer          = require('../managers/http/SchoolServer.manager');
 
 /** 
  * load sharable modules
@@ -57,23 +63,28 @@ module.exports = class ManagersLoader {
     }
 
     load() {
-        this.managers.responseDispatcher  = new ResponseDispatcher();
-        this.managers.liveDb              = new LiveDB(this.injectable);
-        const middlewaresLoader           = new MiddlewaresLoader(this.injectable);
-        const mwsRepo                     = middlewaresLoader.load();
-        const { layers, actions }         = systemArch;
-        this.injectable.mwsRepo           = mwsRepo;
+        this.managers.responseDispatcher = new ResponseDispatcher();
+        this.managers.liveDb             = new LiveDB(this.injectable);
+        const middlewaresLoader          = new MiddlewaresLoader(this.injectable);
+        const mwsRepo                    = middlewaresLoader.load();
+        const { layers, actions }        = systemArch;
+        this.injectable.mwsRepo          = mwsRepo;
         /*****************************************CUSTOM MANAGERS*****************************************/
-        this.managers.shark               = new SharkFin({ ...this.injectable, layers, actions });
-        this.managers.timeMachine         = new TimeMachine(this.injectable);
-        this.managers.token               = new TokenManager(this.injectable);
+        this.managers.shark              = new SharkFin({ ...this.injectable, layers, actions });
+        this.managers.timeMachine        = new TimeMachine(this.injectable);
+        this.managers.token              = new TokenManager(this.injectable);
         // Two approaches, either create a new server for each item, or create an 
         // Api entity manager. For now follow the same structure don't add a new server
-        this.managers.user = new User({ ...this.injectable, managers: this.managers });
+        this.managers.user               = new User({ ...this.injectable, managers: this.managers });
+        this.managers.school             = new School({ ...this.injectable, managers: this.managers });
         /*************************************************************************************************/
-        this.managers.mwsExec             = new VirtualStack({ ...{ preStack: [/* '__token', */'__device',] }, ...this.injectable });
-        this.managers.userApi             = new ApiHandler({...this.injectable,...{prop:'httpExposed'}});
-        this.managers.userServer          = new UserServer({ config: this.config, managers: this.managers });
+        this.managers.mwsExec            = new VirtualStack({ ...{ preStack: [/* '__token', */'__device',] }, ...this.injectable });
+        this.managers.userApi            = new ApiHandler({...this.injectable,...{prop:'httpExposed'}});
+        this.managers.userServer         = new UserServer({ config: this.config, managers: this.managers });
+        // Add token for schoolApi
+        this.managers.mwsExec            = new VirtualStack({ ...{ preStack: ['__token', '__device',] }, ...this.injectable });
+        this.managers.schoolApi          = new ApiHandler({...this.injectable,...{prop:'schoolExposed'}});
+        this.managers.schoolServer       = new SchoolServer({ config: this.config, managers: this.managers });
 
        
         return this.managers;
