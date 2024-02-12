@@ -21,26 +21,6 @@ module.exports = class User {
     this._label             = "user";
   }
 
-
-  async #setupPermissions({ role, userId }) {
-    if(role === "superadmin") {
-      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "read" });
-      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "create" });
-      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "update" });
-      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "delete" });
-    } else if (role === "admin") {
-      this.shark.addDirectAccess({ userId, nodeId: "school", action: "read" });
-      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "read" });
-      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "create" });
-      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "update" });
-      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "delete" });
-      this.shark.addDirectAccess({ userId, nodeId: "student", action: "read" });
-      this.shark.addDirectAccess({ userId, nodeId: "student", action: "create" });
-      this.shark.addDirectAccess({ userId, nodeId: "student", action: "update" });
-      this.shark.addDirectAccess({ userId, nodeId: "student", action: "delete" });
-    }
-  }
-
   async createUser({ username, email, password, role, res }) {
     const user = { username, email, password };
 
@@ -72,7 +52,6 @@ module.exports = class User {
       });
       return getSelfHandleResponse();
     }
-    await this.#setupPermissions({ role, userId: createdUser.email });
 
     let longToken = this.tokenManager.genLongToken({ userId: createdUser.email, userKey: createdUser.key });
 
@@ -155,7 +134,6 @@ module.exports = class User {
       return getSelfHandleResponse();
     }
 
-    this.shark.removeDirectAccess({ userId: id });
     // Response
     return { user: deletedUser };
   }
