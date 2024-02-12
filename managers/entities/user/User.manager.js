@@ -1,3 +1,5 @@
+const getSelfHandleResponse  = require('../../api/_common/getSelfHandleResponse')
+
 module.exports = class User {
   constructor({
     utils,
@@ -8,14 +10,14 @@ module.exports = class User {
     validators,
     oyster,
   } = {}) {
-    this.oyster = oyster;
-    this.config = config;
-    this.cortex = cortex;
-    this.validators = validators;
-    this.tokenManager = managers.token;
+    this.oyster             = oyster;
+    this.config             = config;
+    this.cortex             = cortex;
+    this.validators         = validators;
+    this.tokenManager       = managers.token;
     this.responseDispatcher = managers.responseDispatcher;
-    this.httpExposed = ["createUser", "getUser", "loginUser"];
-    this._label = "user";
+    this.httpExposed        = ["createUser", "getUser", "loginUser"];
+    this._label             = "user";
   }
 
   async createUser({ username, email, password, res }) {
@@ -40,24 +42,17 @@ module.exports = class User {
           code: 409,
           message: "Email already exists",
         });
-        return {
-          selfHandleResponse: true,
-        };
+        return getSelfHandleResponse();
       }
       console.error("Failed to create user", createdUser.error);
       this.responseDispatcher.dispatch(res, {
         code: 500,
         message: "Failed to create user",
       });
-      return {
-        selfHandleResponse: true,
-      };
+      return getSelfHandleResponse();
     }
 
-    let longToken = this.tokenManager.genLongToken({
-      userId: createdUser.email,
-      userKey: createdUser.key,
-    });
+    let longToken = this.tokenManager.genLongToken({ userId: createdUser.email, userKey: createdUser.key });
 
     const { password: _password, ...userWithoutPassword } = createdUser;
 
@@ -81,9 +76,7 @@ module.exports = class User {
         code: 404,
         message: "User not found",
       });
-      return {
-        selfHandleResponse: true,
-      };
+      return getSelfHandleResponse();
     }
 
     // Compare password
@@ -93,9 +86,7 @@ module.exports = class User {
         code: 401,
         message: "Invalid password",
       });
-      return {
-        selfHandleResponse: true,
-      };
+      return getSelfHandleResponse();
     }
 
     // Generate long token
@@ -105,10 +96,7 @@ module.exports = class User {
     });
 
     // Response
-    return {
-      user,
-      longToken,
-    };
+    return { user, longToken };
   }
 
   async getUser({ id, res }) {
@@ -125,9 +113,7 @@ module.exports = class User {
         code: 404,
         message: "User not found",
       });
-      return {
-        selfHandleResponse: true,
-      };
+      return getSelfHandleResponse();
     }
     return user;
   }
