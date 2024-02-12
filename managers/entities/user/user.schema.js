@@ -29,6 +29,7 @@ module.exports = {
   getUser: [
     {
       model: "id",
+      path: "id",
       required: true,
     },
   ],

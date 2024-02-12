@@ -17,17 +17,17 @@ module.exports = class User {
     this.tokenManager       = managers.token;
     this.responseDispatcher = managers.responseDispatcher;
     this.shark              = managers.shark;
-    this.httpExposed        = ["createUser", "getUser", "loginUser"];
+    this.httpExposed        = ["createUser", "getUser", "loginUser", "deleteUser"];
     this._label             = "user";
   }
 
 
   async #setupPermissions({ role, userId }) {
     if(role === "superadmin") {
-      this.shark.addDirectAccess({ userId, nodeId: "school", action: "read" });
-      this.shark.addDirectAccess({ userId, nodeId: "school", action: "create" });
-      this.shark.addDirectAccess({ userId, nodeId: "school", action: "update" });
-      this.shark.addDirectAccess({ userId, nodeId: "school", action: "delete" });
+      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "read" });
+      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "create" });
+      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "update" });
+      this.shark.addDirectAccess({ userId, nodeId: "board.school", action: "delete" });
     } else if (role === "admin") {
       this.shark.addDirectAccess({ userId, nodeId: "school", action: "read" });
       this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "read" });
@@ -138,5 +138,25 @@ module.exports = class User {
       return getSelfHandleResponse();
     }
     return user;
+  }
+
+  async deleteUser({ id, res })  {
+    // Delete user from db
+    const deletedUser = await this.oyster.call("delete_block", id);
+
+
+    // Handle Not Found
+    if (deletedUser.ok) {
+      this.responseDispatcher.dispatch(res, {
+        ok: false,
+        code: 404,
+        message: "User not found",
+      });
+      return getSelfHandleResponse();
+    }
+
+    this.shark.removeDirectAccess({ userId: id });
+    // Response
+    return { user: deletedUser };
   }
 };
