@@ -1,4 +1,4 @@
-const getSelfHandleResponse  = require('../../api/_common/getSelfHandleResponse')
+const getSelfHandleResponse  = require('../../api/_common/getSelfResponse')
 
 module.exports = class User {
   constructor({
@@ -16,11 +16,32 @@ module.exports = class User {
     this.validators         = validators;
     this.tokenManager       = managers.token;
     this.responseDispatcher = managers.responseDispatcher;
+    this.shark              = managers.shark;
     this.httpExposed        = ["createUser", "getUser", "loginUser"];
     this._label             = "user";
   }
 
-  async createUser({ username, email, password, res }) {
+
+  async #setupPermissions({ role, userId }) {
+    if(role === "superadmin") {
+      this.shark.addDirectAccess({ userId, nodeId: "school", action: "read" });
+      this.shark.addDirectAccess({ userId, nodeId: "school", action: "create" });
+      this.shark.addDirectAccess({ userId, nodeId: "school", action: "update" });
+      this.shark.addDirectAccess({ userId, nodeId: "school", action: "delete" });
+    } else if (role === "admin") {
+      this.shark.addDirectAccess({ userId, nodeId: "school", action: "read" });
+      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "read" });
+      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "create" });
+      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "update" });
+      this.shark.addDirectAccess({ userId, nodeId: "classroom", action: "delete" });
+      this.shark.addDirectAccess({ userId, nodeId: "student", action: "read" });
+      this.shark.addDirectAccess({ userId, nodeId: "student", action: "create" });
+      this.shark.addDirectAccess({ userId, nodeId: "student", action: "update" });
+      this.shark.addDirectAccess({ userId, nodeId: "student", action: "delete" });
+    }
+  }
+
+  async createUser({ username, email, password, role, res }) {
     const user = { username, email, password };
 
     // Data validation
@@ -31,7 +52,7 @@ module.exports = class User {
     // Create user in db, should hash password? No hashing for now
     const createdUser = await this.oyster.call("add_block", {
       ...user,
-      role: "user",
+      role: role || "user",
       _id: user.email,
       _label: this._label,
     });
@@ -51,6 +72,7 @@ module.exports = class User {
       });
       return getSelfHandleResponse();
     }
+    await this.#setupPermissions({ role, userId: createdUser.email });
 
     let longToken = this.tokenManager.genLongToken({ userId: createdUser.email, userKey: createdUser.key });
 

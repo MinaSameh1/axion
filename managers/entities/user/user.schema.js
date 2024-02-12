@@ -17,6 +17,11 @@ module.exports = {
       path: "username",
       required: true,
     },
+    {
+      model: "role",
+      path: "role",
+      default: "user"
+    },
     email,
     password,
   ],
