@@ -5,14 +5,14 @@ const md5        = require('md5');
 module.exports = class SharkFin {
 
   constructor({ config, layers, actions, cache, managers,utils, oyster}) {
-    this.config  = config;
-    this.utils   = utils;
-    this.oyster  = oyster;
+    this.config       = config;
+    this.utils        = utils;
+    this.oyster       = oyster;
     this.contentToken = managers.contentToken;
-    this.layers  = layers;
-    this.actions = actions;
-    this.wildAccess = {};
-    this.userAccess = {};
+    this.layers       = layers;
+    this.actions      = actions;
+    this.wildAccess   = {};
+    this.userAccess   = {};
     /** make sure the ranks doesn't have a zero rank. */
     if (Object.values(this.actions).includes(0)) { throw Error("dont use 0 as a rank") }
 
