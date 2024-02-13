@@ -1,24 +1,14 @@
 const getSelfHandleResponse = require("../../api/_common/getSelfResponse");
 
 module.exports = class School {
-  constructor({
-    utils,
-    cache,
-    config,
-    cortex,
-    managers,
-    validators,
-    oyster,
-  } = {}) {
-    this.config = config;
-    this.cortex = cortex;
-    this.validators = validators;
-    this.tokenManager = managers.token;
-    this.shark = managers.shark;
-    this.oyster = oyster;
+  constructor({ utils, cache, managers, validators, oyster } = {}) {
+    this.validators         = validators;
+    this.cache              = cache;
+    this.shark              = managers.shark;
+    this.oyster             = oyster;
     this.responseDispatcher = managers.responseDispatcher;
-    this._label = "schools";
-    this.httpExposed = [
+    this._label             = "schools";
+    this.httpExposed        = [
       "createSchool",
       "get=getSchool",
       "delete=deleteSchool",
