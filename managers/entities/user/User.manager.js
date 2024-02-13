@@ -1,4 +1,4 @@
-const getSelfHandleResponse  = require('../../api/_common/getSelfResponse')
+const getSelfHandleResponse = require("../../api/_common/getSelfResponse");
 
 module.exports = class User {
   constructor({
@@ -20,6 +20,64 @@ module.exports = class User {
     this.httpExposed        = ["createUser", "getUser", "loginUser", "deleteUser"];
     this._label             = "user";
   }
+
+  async #setPermission({ userId, role }) {
+    const addDirectAccess = ({ nodeId, layer, action }) => {
+      return this.shark.addDirectAccess({
+        userId,
+        nodeId,
+        layer,
+        action,
+      });
+    };
+
+    const lookupTable = {
+      admin: async () => {
+        const items = [
+          {
+            nodeId: "board.school",
+            layer: "board.school",
+            action: "read",
+          },
+          {
+            nodeId: "board.school.class",
+            layer: "board.school.class",
+            action: "delete",
+          },
+          {
+            nodeId: "board.school.class.student",
+            layer: "board.school.class.student",
+            action: "update",
+          },
+        ];
+        for (const item of items) {
+          await addDirectAccess(item);
+        }
+      },
+      superadmin: async () => {
+        const items = [
+          {
+            nodeId: "board.school",
+            layer: "board.school",
+            action: "delete",
+          },
+          {
+            nodeId: "board.school.class",
+            layer: "board.school.class",
+            action: "read",
+          },
+        ];
+        for (const item of items) {
+          await addDirectAccess(item);
+        }
+      },
+    };
+
+    if (lookupTable[role]) {
+      await lookupTable[role]();
+    }
+  }
+
 
   async createUser({ username, email, password, role, res }) {
     const user = { username, email, password };
@@ -53,7 +111,11 @@ module.exports = class User {
       return getSelfHandleResponse();
     }
 
-    let longToken = this.tokenManager.genLongToken({ userId: createdUser.email, userKey: createdUser.key });
+    this.#setPermission({ userId: createdUser.email, role: createdUser.role });
+    let longToken = this.tokenManager.genLongToken({
+      userId: createdUser.email,
+      userKey: createdUser.key,
+    });
 
     const { password: _password, ...userWithoutPassword } = createdUser;
 
@@ -119,10 +181,9 @@ module.exports = class User {
     return user;
   }
 
-  async deleteUser({ id, res })  {
+  async deleteUser({ id, res }) {
     // Delete user from db
     const deletedUser = await this.oyster.call("delete_block", id);
-
 
     // Handle Not Found
     if (deletedUser.ok) {
