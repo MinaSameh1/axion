@@ -108,7 +108,7 @@ module.exports = class Class {
 
     const { id } = __query;
     // Data validation
-    let result = await this.validators.school.getSchool({ id });
+    let result = await this.validators.class.getClass({ id });
 
     if (result) return result;
 
