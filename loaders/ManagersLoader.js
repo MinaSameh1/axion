@@ -82,7 +82,7 @@ module.exports = class ManagersLoader {
         this.managers.userApi            = new ApiHandler({...this.injectable,...{prop:'httpExposed'}});
         this.managers.userServer         = new UserServer({ config: this.config, managers: this.managers });
         // Add token for schoolApi
-        this.managers.mwsExec            = new VirtualStack({ ...{ preStack: ['__token', '__device',] }, ...this.injectable });
+        this.managers.mwsExec            = new VirtualStack({ ...{ preStack: ['__token', '__device','__query'] }, ...this.injectable });
         this.managers.schoolApi          = new ApiHandler({...this.injectable,...{prop:'schoolExposed'}});
         this.managers.schoolServer       = new SchoolServer({ config: this.config, managers: this.managers });
 
