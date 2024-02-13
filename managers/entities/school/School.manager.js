@@ -130,7 +130,7 @@ module.exports = class School {
     let school = {};
     if (id.includes("school:")) {
       school = await this.oyster.call("get_block", id);
-    } else school = await this.oyster.call("get_block", `school:${id}`);
+    } else school = await this.oyster.call("get_block", `schools:${id}`);
 
     // Check if school exists
     if (!school || Object.keys(school).length === 0) {
