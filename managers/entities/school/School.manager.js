@@ -128,7 +128,7 @@ module.exports = class School {
     if (result) return result;
 
     let school = {};
-    if (id.includes("school:")) {
+    if (id.includes("schools:")) {
       school = await this.oyster.call("get_block", id);
     } else school = await this.oyster.call("get_block", `schools:${id}`);
 
