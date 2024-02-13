@@ -18,7 +18,12 @@ module.exports = class School {
     this.oyster = oyster;
     this.responseDispatcher = managers.responseDispatcher;
     this._label = "schools";
-    this.schoolExposed = ["createSchool", "get=getSchool", "delete=deleteSchool", "put=updateSchool"];
+    this.httpExposed = [
+      "createSchool",
+      "get=getSchool",
+      "delete=deleteSchool",
+      "put=updateSchool",
+    ];
   }
 
   async #getUser({ userId }) {
@@ -70,7 +75,6 @@ module.exports = class School {
     // Creation Logic
     const createdSchool = await this.oyster.call("add_block", {
       ...school,
-      _id: name,
       _label: this._label,
     });
 
@@ -94,17 +98,25 @@ module.exports = class School {
     return { school: createdSchool };
   }
 
-  async getSchool({ __query }) {
+  async getSchool({ __query, res }) {
     const { id } = __query;
     // Data validation
     let result = await this.validators.school.getSchool({ id });
 
     if (result) return result;
 
-    const school = await this.oyster.call("get_block", id);
+    let school = {};
+    if (id.includes("school:")) {
+      school = await this.oyster.call("get_block", id);
+    } else school = await this.oyster.call("get_block", `school:${id}`);
+
+    // Check if school exists
     if (!school || Object.keys(school).length === 0) {
-      return { error: "School not found" };
+      this.responseDispatcher.dispatch(res, { code: 404, message: "School not found" });
+      return getSelfHandleResponse();
     }
+
+    // Response
     return school;
   }
 
@@ -177,7 +189,7 @@ module.exports = class School {
       return { error: "Permission denied" };
     }
 
-    // Data validation 
+    // Data validation
     let result = await this.validators.school.getSchool(__query);
     if (result) return result;
 
@@ -197,5 +209,4 @@ module.exports = class School {
       school,
     };
   }
-
 };
