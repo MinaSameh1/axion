@@ -98,7 +98,29 @@ module.exports = class School {
     return { school: createdSchool };
   }
 
-  async getSchool({ __query, res }) {
+  async getSchool({ __token, __query, res }) {
+
+    const { userId } = __token;
+
+    const user = await this.#getUser({ userId });
+
+    if (user.error) return user;
+
+    if (!user.role) {
+      return { error: "User role not found" };
+    }
+
+    // Permission check 
+    const canGetSchool = await this.#checkPermission({
+      userId,
+      role: user.role,
+      action: "read",
+    });
+
+    if (!canGetSchool) {
+      return { error: "Permission denied" };
+    }
+
     const { id } = __query;
     // Data validation
     let result = await this.validators.school.getSchool({ id });
