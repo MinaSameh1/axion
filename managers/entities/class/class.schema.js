@@ -1,15 +1,17 @@
+const classNameSchema = {
+  path: "name",
+  type: "String",
+  length: { min: 1, max: 50 },
+  required: true,
+};
+
 const classSchema = [
-  {
-    path: "name",
-    type: "String",
-    length: { min: 1, max: 50 },
-    required: true,
-  },
+  classNameSchema,
   {
     path: "schoolId",
     type: "String",
     required: true,
-  }
+  },
 ];
 
 const classIdSchema = [

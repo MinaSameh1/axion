@@ -127,7 +127,7 @@ module.exports = class Class {
     return findClass;
   }
 
-  async updateClass({ id, name, __token, res }) {
+  async updateClass({ id, name, schoolId, __token, res }) {
     const { userId } = __token;
 
     // Permission check
@@ -140,10 +140,13 @@ module.exports = class Class {
       return canUpdateClass;
     }
 
-    const toUpdateClass = { name };
+    const toUpdateClass = { name, schoolId };
 
     // Data validation
-    let result = await this.validators.class.updateClass(toUpdateClass);
+    let result = await this.validators.class.updateClass({
+      ...toUpdateClass,
+      id,
+    });
 
     if (result) return result;
 

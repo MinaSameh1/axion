@@ -123,7 +123,7 @@ module.exports = class Student {
     return student;
   }
 
-  async updateStudent({ id, name, __token, res }) {
+  async updateStudent({ id, name, classId, __token, res }) {
     const { userId } = __token;
 
     // Permission check
@@ -136,10 +136,13 @@ module.exports = class Student {
       return canUpdateStudent;
     }
 
-    const toUpdateStudent = { name };
+    const toUpdateStudent = { name, classId };
 
     // Data validation
-    let result = await this.validators.student.updateStudent(toUpdateStudent);
+    let result = await this.validators.student.updateStudent({
+      ...toUpdateStudent,
+      id,
+    });
 
     if (result) return result;
 
