@@ -15,7 +15,8 @@ const TimeMachine           = require('../managers/time_machine/TimeMachine.mana
 // Custom Managers
 const User                  = require('../managers/entities/user/User.manager');
 const School                = require('../managers/entities/school/School.manager');
-const Class                = require('../managers/entities/class/Class.manager');
+const Class                 = require('../managers/entities/class/Class.manager');
+const Student               = require('../managers/entities/student/Student.manager');
 
 // Servers
 const UserServer            = require('../managers/http/UserServer.manager');
@@ -78,6 +79,7 @@ module.exports = class ManagersLoader {
         this.managers.user               = new User({ ...this.injectable, managers: this.managers });
         this.managers.school             = new School({ ...this.injectable, managers: this.managers });
         this.managers.class              = new Class({ ...this.injectable, managers: this.managers });
+        this.managers.student            = new Student({ ...this.injectable, managers: this.managers });
         /*************************************************************************************************/
         this.managers.mwsExec            = new VirtualStack({ ...{ preStack: ['__log', '__device'] }, ...this.injectable });
         this.managers.userApi            = new ApiHandler({...this.injectable,...{prop:'httpExposed'}});
