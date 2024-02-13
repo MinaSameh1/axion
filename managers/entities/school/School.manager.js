@@ -24,35 +24,35 @@ module.exports = class School {
     return user;
   }
 
-  async #checkPermission({ userId, role, action, nodeId = "board.school" }) {
+  async #checkPermission({ userId, action, nodeId = "board.school" }) {
+    const user = await this.#getUser({ userId });
+    if (user.error) return user;
+
+    if (!user.role) {
+      return {error: "User role not found"};
+    }
+
     const canDoAction = await this.shark.isGranted({
       layer: "board.school",
       action,
       userId,
       nodeId,
-      role,
+      role: user.role,
     });
-    return canDoAction;
+    return {error: canDoAction ? undefined : "Permission denied"};
   }
 
   async createSchool({ name, address, phone, __token, res }) {
     const { userId } = __token;
-    const user = await this.#getUser({ userId });
-    if (user.error) return user;
-
-    if (!user.role) {
-      return { error: "User role not found" };
-    }
 
     // Permission check
     const canCreateSchool = await this.#checkPermission({
       userId,
-      role: user.role,
       action: "create",
     });
 
-    if (!canCreateSchool) {
-      return { error: "Permission denied" };
+    if (canCreateSchool.error) {
+      return canCreateSchool;
     }
 
     const school = { name, address, phone };
@@ -85,30 +85,20 @@ module.exports = class School {
     }
 
     // Response
-    return { school: createdSchool };
+    return createdSchool;
   }
 
   async getSchool({ __token, __query, res }) {
-
     const { userId } = __token;
-
-    const user = await this.#getUser({ userId });
-
-    if (user.error) return user;
-
-    if (!user.role) {
-      return { error: "User role not found" };
-    }
 
     // Permission check 
     const canGetSchool = await this.#checkPermission({
       userId,
-      role: user.role,
       action: "read",
     });
 
-    if (!canGetSchool) {
-      return { error: "Permission denied" };
+    if (canGetSchool.error) {
+      return canGetSchool
     }
 
     const { id } = __query;
@@ -134,22 +124,15 @@ module.exports = class School {
 
   async updateSchool({ id, name, address, phone, __token, res }) {
     const { userId } = __token;
-    const user = await this.#getUser({ userId });
-    if (user.error) return user;
-
-    if (!user.role) {
-      return { error: "User role not found" };
-    }
 
     // Permission check
     const canUpdateSchool = await this.#checkPermission({
       userId,
-      role: user.role,
       action: "update",
     });
 
-    if (!canUpdateSchool) {
-      return { error: "Permission denied" };
+    if (canUpdateSchool.error) {
+      return canUpdateSchool;
     }
 
     const school = { name, address, phone, id };
@@ -183,22 +166,14 @@ module.exports = class School {
 
   async deleteSchool({ __token, __query, res }) {
     const { userId } = __token;
-    const user = await this.#getUser({ userId });
-    if (user.error) return user;
-
-    if (!user.role) {
-      return { error: "User role not found" };
-    }
-
     // Permission check
     const canDeleteSchool = await this.#checkPermission({
       userId,
-      role: user.role,
       action: "delete",
     });
 
-    if (!canDeleteSchool) {
-      return { error: "Permission denied" };
+    if (canDeleteSchool.error) {
+      return canDeleteSchool;
     }
 
     // Data validation
