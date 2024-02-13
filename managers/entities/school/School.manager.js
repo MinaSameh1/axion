@@ -159,9 +159,7 @@ module.exports = class School {
     }
 
     // Response
-    return {
-      school: createdSchool,
-    };
+    return createdSchool;
   }
 
   async deleteSchool({ __token, __query, res }) {
@@ -192,8 +190,6 @@ module.exports = class School {
     }
 
     // Response
-    return {
-      school,
-    };
+    return school
   }
 };
