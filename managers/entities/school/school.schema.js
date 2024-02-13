@@ -5,12 +5,12 @@ const schoolSchema = [
     required: true,
   },
     {
-      model: "text",
+      model: "longText",
       path: "address",
       required: true,
     },
     {
-      model: "text",
+      model: "phone",
       path: "phone",
       required: true,
     },
@@ -18,7 +18,7 @@ const schoolSchema = [
 
 const schoolIdSchema = [
   {
-    model: "text",
+    type: "String",
     path: "id",
     required: true,
   },
