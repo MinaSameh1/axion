@@ -7,18 +7,19 @@ const layers = {
     _store: { anyoneCan: "read", noOneCan: "create" },
 
     school: {
-      _default: { anyoneCan: "read" },
+      _default: { adminCan: "read", superAdminCan: "update" },
       _public: { anyoneCan: "none" },
       _private: { inherit: true },
       _store: { inherit: true },
+
       class: {
-        _default: { inherit: true },
+        _default: { adminCan: "update", superAdminCan: "read" },
         _public: { inherit: true },
         _private: { inherit: true },
         _store: { inherit: true },
 
         student: {
-            _default: { inherit: true },
+            _default: { adminCan: "update", superAdminCan: "none" },
             _public: { inherit: true },
             _private: { inherit: true },
             _store: { inherit: true },
