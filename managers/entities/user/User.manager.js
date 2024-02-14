@@ -1,6 +1,6 @@
 const getSelfHandleResponse = require("../../api/_common/getSelfResponse");
 
-module.exports = class User {
+module.exports              = class User {
   constructor({
     utils,
     cache,
@@ -9,8 +9,9 @@ module.exports = class User {
     managers,
     validators,
     oyster,
-  } = {}) {
+  }                         = {}) {
     this.utils              = utils;
+    this.hasher             = managers.hasher;
     this.oyster             = oyster;
     this.config             = config;
     this.cortex             = cortex;
@@ -87,10 +88,13 @@ module.exports = class User {
     let result = await this.validators.user.createUser(user);
     if (result) return result;
 
-    // Creation Logic
+    /// Creation Logic
+    // hash password
+    const passHash = this.hasher.encrypt(password);
     // Create user in db, should hash password? No hashing for now
     const createdUser = await this.oyster.call("add_block", {
       ...user,
+      password: passHash,
       role: role || "user",
       _id: user.email,
       _label: this._label,
@@ -144,7 +148,8 @@ module.exports = class User {
     }
 
     // Compare password
-    if (user.password !== password) {
+    const compare = this.hasher.compare(password, user.password);
+    if (!compare) {
       this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 401,

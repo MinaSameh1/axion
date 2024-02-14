@@ -13,6 +13,7 @@ const SharkFin              = require('../managers/shark_fin/SharkFin.manager');
 const TimeMachine           = require('../managers/time_machine/TimeMachine.manager');
 
 // Custom Managers
+const Hasher                = require('../managers/hasher/Hasher.manager');
 const User                  = require('../managers/entities/user/User.manager');
 const School                = require('../managers/entities/school/School.manager');
 const Class                 = require('../managers/entities/class/Class.manager');
@@ -74,6 +75,7 @@ module.exports = class ManagersLoader {
         this.managers.shark              = new SharkFin({ ...this.injectable, layers, actions });
         this.managers.timeMachine        = new TimeMachine(this.injectable);
         this.managers.token              = new TokenManager(this.injectable);
+        this.managers.hasher             = new Hasher(this.injectable);
         // Two approaches, either create a new server for each item, or create an 
         // Api entity manager. For now follow the same structure don't add a new server
         this.managers.user               = new User({ ...this.injectable, managers: this.managers });
