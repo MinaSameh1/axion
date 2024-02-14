@@ -10,6 +10,7 @@ module.exports = class User {
     validators,
     oyster,
   } = {}) {
+    this.utils              = utils;
     this.oyster             = oyster;
     this.config             = config;
     this.cortex             = cortex;
@@ -133,7 +134,7 @@ module.exports = class User {
 
     // Get user from db
     const user = await this.oyster.call("get_block", `${this._label}:${email}`);
-    if (!user || Object.keys(user).length === 0) {
+    if (!user || this.utils.isEmptyObject(user)) {
       this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 404,
@@ -158,8 +159,10 @@ module.exports = class User {
       userKey: user.key,
     });
 
+    const {password: _password, ...userWithoutPassword} = user;
+
     // Response
-    return { user, longToken };
+    return { user: userWithoutPassword, longToken };
   }
 
   async getUser({ id, res }) {
@@ -170,7 +173,7 @@ module.exports = class User {
     const user = await this.oyster.call("get_block", id);
 
     // Handle Not Found
-    if (!user || Object.keys(user).length === 0) {
+    if (!user || this.utils.isEmptyObject(user)) {
       this.responseDispatcher.dispatch(res, {
         ok: false,
         code: 404,
@@ -182,6 +185,19 @@ module.exports = class User {
   }
 
   async deleteUser({ id, res }) {
+
+    const user = await this.oyster.call("get_block", id);
+
+    // Handle Not found
+    if (!user || this.utils.isEmptyObject(user)) {
+      this.responseDispatcher.dispatch(res, {
+        ok: false,
+        code: 404,
+        message: "User not found",
+      });
+      return getSelfHandleResponse();
+    }
+
     // Delete user from db
     const deletedUser = await this.oyster.call("delete_block", id);
 
@@ -196,6 +212,6 @@ module.exports = class User {
     }
 
     // Response
-    return { user: deletedUser };
+    return { deleted: deletedUser };
   }
 };
