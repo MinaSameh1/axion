@@ -134,7 +134,12 @@ const isChance = (max)=>{
     return min == value; 
 }
 
+function isEmptyObject(obj){
+    return Object.keys(obj).length === 0;
+}
+
 module.exports = {
+  isEmptyObject,
   slugify,
   getDeepValue,
   setDeepValue,
